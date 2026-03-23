@@ -117,9 +117,14 @@ app.post('/api/generate-text', async (req, res) => {
 // ==========================================
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 587, // 🛡️ Changed to 587 (TLS) - The preferred port for Cloud Hosting
+    port: 587, 
     secure: false, 
     requireTLS: true,
+    
+    // 🛡️ THE ULTIMATE FIX: This physically forces Node.js to use standard IPv4
+    // bypassing Render's IPv6 network block!
+    family: 4, 
+    
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS 
