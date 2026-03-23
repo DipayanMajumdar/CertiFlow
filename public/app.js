@@ -3,17 +3,17 @@
 // ==========================================
 const canvas = new fabric.Canvas('certificateCanvas', { width: 800, height: 600, backgroundColor: '#ffffff' });
 
-window.alert = function(message) {
+window.alert = function (message) {
     const container = document.getElementById('toastContainer');
-    if (!container) { console.log(message); return; } 
-    
+    if (!container) { console.log(message); return; }
+
     const safeMessage = String(message);
     const toast = document.createElement('div');
-    
+
     let type = 'info', icon = 'ri-information-line';
     const msgLower = safeMessage.toLowerCase();
-    
-    if(msgLower.includes('error') || msgLower.includes('failed') || msgLower.includes('please') || msgLower.includes('invalid')) {
+
+    if (msgLower.includes('error') || msgLower.includes('failed') || msgLower.includes('please') || msgLower.includes('invalid')) {
         type = 'error'; icon = 'ri-error-warning-line';
     } else if (msgLower.includes('success') || msgLower.includes('done') || msgLower.includes('loaded') || msgLower.includes('import') || msgLower.includes('resized') || msgLower.includes('grouped')) {
         type = 'success'; icon = 'ri-checkbox-circle-line';
@@ -32,7 +32,7 @@ window.alert = function(message) {
 fabric.Object.prototype.set({
     transparentCorners: false, borderColor: '#8b5cf6', cornerColor: '#ffffff',
     cornerStrokeColor: '#8b5cf6', cornerStyle: 'circle', cornerSize: 10,
-    padding: 6, borderDashArray: [4, 4] 
+    padding: 6, borderDashArray: [4, 4]
 });
 
 const bgRect = new fabric.Rect({
@@ -56,13 +56,13 @@ document.getElementById('pageLayout').addEventListener('change', function () {
 
     const rect = canvas.getObjects().find(obj => obj.id === 'default_bg' || (obj.fill === 'transparent' && obj.strokeWidth === 10));
     if (rect) rect.set({ width: baseCanvasWidth - 40, height: baseCanvasHeight - 40 });
-    
+
     canvas.calcOffset(); canvas.requestRenderAll();
     alert(`Success: Page layout resized to ${baseCanvasWidth} x ${baseCanvasHeight}`);
 });
 
 function applyZoom(zoom) {
-    currentZoom = Math.min(Math.max(0.2, zoom), 3); 
+    currentZoom = Math.min(Math.max(0.2, zoom), 3);
     canvas.setZoom(currentZoom);
     canvas.setWidth(baseCanvasWidth * currentZoom);
     canvas.setHeight(baseCanvasHeight * currentZoom);
@@ -150,7 +150,7 @@ document.getElementById('bgUpload').addEventListener('change', function (e) {
     reader.onload = function (f) {
         const data = f.target.result; const rawImg = new Image(); rawImg.src = data;
         rawImg.onload = function () {
-            const colorThief = new ColorThief(); const dominantColor = colorThief.getColor(rawImg); 
+            const colorThief = new ColorThief(); const dominantColor = colorThief.getColor(rawImg);
             const brightness = Math.round(((parseInt(dominantColor[0]) * 299) + (parseInt(dominantColor[1]) * 587) + (parseInt(dominantColor[2]) * 114)) / 1000);
             const optimalTextColor = (brightness > 125) ? '#1e3a8a' : '#ffffff';
 
@@ -190,7 +190,7 @@ canvas.on({
 
 function handleSelection(e) {
     const obj = e.selected[0]; if (!obj) return;
-    propertiesPanel.style.display = 'flex'; 
+    propertiesPanel.style.display = 'flex';
 
     const op = obj.opacity !== undefined ? obj.opacity : 1;
     document.getElementById('opacitySlider').value = op;
@@ -208,7 +208,7 @@ function handleSelection(e) {
     } else { textControls.style.display = 'none'; }
 }
 
-document.getElementById('textColor').addEventListener('input', function () { const obj = canvas.getActiveObject(); if (obj) { obj.set('fill', this.value); if(canvas.isDrawingMode) canvas.freeDrawingBrush.color = this.value; canvas.requestRenderAll(); } });
+document.getElementById('textColor').addEventListener('input', function () { const obj = canvas.getActiveObject(); if (obj) { obj.set('fill', this.value); if (canvas.isDrawingMode) canvas.freeDrawingBrush.color = this.value; canvas.requestRenderAll(); } });
 document.getElementById('fontSize').addEventListener('input', function () { const obj = canvas.getActiveObject(); if (obj) { obj.set('fontSize', parseInt(this.value, 10)); canvas.requestRenderAll(); } });
 document.getElementById('boldBtn').addEventListener('click', function () { const obj = canvas.getActiveObject(); if (obj) { obj.set('fontWeight', obj.fontWeight === 'bold' ? 'normal' : 'bold'); canvas.requestRenderAll(); } });
 document.getElementById('italicBtn').addEventListener('click', function () { const obj = canvas.getActiveObject(); if (obj) { obj.set('fontStyle', obj.fontStyle === 'italic' ? 'normal' : 'italic'); canvas.requestRenderAll(); } });
@@ -241,7 +241,7 @@ document.getElementById('shadowToggle').addEventListener('change', function () {
 // ==========================================
 // 5. HISTORY & CLIPBOARD (Undo/Redo)
 // ==========================================
-let canvasHistory = []; let historyIndex = -1; let isHistoryProcessing = false; 
+let canvasHistory = []; let historyIndex = -1; let isHistoryProcessing = false;
 function saveHistory() {
     if (isHistoryProcessing) return;
     if (historyIndex < canvasHistory.length - 1) canvasHistory = canvasHistory.slice(0, historyIndex + 1);
@@ -279,22 +279,22 @@ window.addEventListener('keydown', function (e) {
 // 🛡️ THE ULTIMATE FIX: Native HTML5 Snapshot (0% Memory Load)
 document.getElementById('downloadProofBtn').addEventListener('click', function () {
     try {
-        canvas.discardActiveObject(); 
+        canvas.discardActiveObject();
         canvas.requestRenderAll(); // Async clear of the blue selection boxes
-        
+
         // Wait 100ms for the blue boxes to visually disappear, then SNAPSHOT
         setTimeout(() => {
             // Grab the raw pixel buffer directly from the browser (Lightning fast, no memory spikes)
             const rawCanvas = document.getElementById('certificateCanvas');
             const dataURL = rawCanvas.toDataURL('image/jpeg', 0.95);
-            
-            const link = document.createElement('a'); 
-            link.download = 'CertiFlow_Proof.jpg'; 
+
+            const link = document.createElement('a');
+            link.download = 'CertiFlow_Proof.jpg';
             link.href = dataURL;
-            document.body.appendChild(link); 
-            link.click(); 
+            document.body.appendChild(link);
+            link.click();
             document.body.removeChild(link);
-            
+
             alert("Success: Proof Downloaded Instantly!");
         }, 100);
     } catch (err) {
@@ -309,7 +309,7 @@ document.getElementById('exportBtn').addEventListener('click', async () => {
     try {
         const response = await fetch('/api/templates', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-api-key': 'certiflow-admin-2026' }, body: JSON.stringify(templateData) });
         if (response.ok) alert("Success: Template Saved!"); else alert("Error: Could not save template.");
-    } catch (error) { alert("Error: Cannot connect to server."); } 
+    } catch (error) { alert("Error: Cannot connect to server."); }
     finally { btn.innerHTML = "<i class='ri-save-3-line'></i> Save Template"; btn.disabled = false; }
 });
 
@@ -317,13 +317,13 @@ const modal = document.getElementById('templateModal');
 const templateList = document.getElementById('templateList');
 
 document.getElementById('viewTemplatesBtn').addEventListener('click', async () => {
-    modal.style.display = 'flex'; setTimeout(() => modal.classList.add('active'), 10); 
+    modal.style.display = 'flex'; setTimeout(() => modal.classList.add('active'), 10);
     templateList.innerHTML = '<p style="text-align:center;"><i class="ri-loader-4-line ri-spin"></i> Loading templates...</p>';
     try {
         const response = await fetch('/api/templates', { headers: { 'x-api-key': 'certiflow-admin-2026' } });
         const data = await response.json();
         if (data.success && data.templates.length > 0) {
-            templateList.innerHTML = ''; 
+            templateList.innerHTML = '';
             data.templates.forEach(t => {
                 const dateString = new Date(t.createdAt).toLocaleDateString();
                 const card = document.createElement('div');
@@ -341,7 +341,7 @@ document.getElementById('viewTemplatesBtn').addEventListener('click', async () =
                                 canvas.requestRenderAll(); document.getElementById('closeModalBtn').click(); alert('Success: Template loaded successfully!');
                             });
                         }
-                    } catch(err) { alert('Error: Failed to load template.'); }
+                    } catch (err) { alert('Error: Failed to load template.'); }
                 });
             });
         } else { templateList.innerHTML = '<p style="text-align:center; color: var(--text-muted);">No saved templates found.</p>'; }
@@ -349,7 +349,7 @@ document.getElementById('viewTemplatesBtn').addEventListener('click', async () =
 });
 
 document.getElementById('closeModalBtn').addEventListener('click', () => {
-    modal.classList.remove('active'); setTimeout(() => modal.style.display = 'none', 200); 
+    modal.classList.remove('active'); setTimeout(() => modal.style.display = 'none', 200);
 });
 
 // ==========================================
@@ -372,7 +372,7 @@ document.getElementById('csvUpload').addEventListener('change', function (e) {
                 btn.className = 'btn small-btn'; btn.style.background = '#e2e8f0'; btn.innerText = `+ {{${header}}}`;
                 btn.onclick = () => {
                     const text = new fabric.Textbox(`{{${header}}}`, {
-                        left: canvas.getWidth()/2, top: canvas.getHeight()/2, originX: 'center', originY: 'center',
+                        left: canvas.getWidth() / 2, top: canvas.getHeight() / 2, originX: 'center', originY: 'center',
                         width: 500, textAlign: 'center', fontFamily: 'Helvetica', fontSize: 30, fill: '#1e40af', fontWeight: 'bold'
                     });
                     canvas.add(text); canvas.setActiveObject(text);
@@ -440,7 +440,7 @@ const renderCanvasToPDFNative = (pdfDoc) => {
             let trueTop = obj.top; if (obj.originY === 'center') trueTop -= (obj.height * obj.scaleY) / 2; if (obj.originY === 'bottom') trueTop -= (obj.height * obj.scaleY);
 
             let y = trueTop + (obj.fontSize * obj.scaleY * 0.85); let x = trueLeft; let options = { align: 'left' };
-            if (obj.textAlign === 'center') { x = trueLeft + ((obj.width * obj.scaleX) / 2); options.align = 'center'; } 
+            if (obj.textAlign === 'center') { x = trueLeft + ((obj.width * obj.scaleX) / 2); options.align = 'center'; }
             else if (obj.textAlign === 'right') { x = trueLeft + (obj.width * obj.scaleX); options.align = 'right'; }
             if (obj.text) pdfDoc.text(obj.text.split('\n'), x, y, options);
         }
@@ -452,7 +452,7 @@ const addQRCode = (url) => {
         const qr = new QRious({ value: url, size: 100 });
         fabric.Image.fromURL(qr.toDataURL(), (img) => {
             if (img) { img.set({ left: 40, top: (canvas.getHeight() / canvas.getZoom()) - 140, id: 'temp_qr' }); canvas.add(img); }
-            resolve(img); 
+            resolve(img);
         });
     });
 };
@@ -495,7 +495,8 @@ document.getElementById('generateBatchBtn').addEventListener('click', async func
 
             const participantIdName = row[smartMapping['Name']] || Object.keys(row)[0] || `Participant_${i}`;
             const certId = 'CF-' + Math.random().toString(36).substr(2, 9).toUpperCase();
-            const qrImg = await addQRCode(`http://localhost:5000/verify/${certId}?name=${encodeURIComponent(participantIdName)}`);
+            const currentDomain = window.location.origin;
+            const qrImg = await addQRCode(`${currentDomain}/verify/${certId}?name=${encodeURIComponent(participantIdName)}`);
             canvas.renderAll();
 
             const outputFormat = document.getElementById('outputFormat').value;
@@ -530,19 +531,19 @@ document.getElementById('generateBatchBtn').addEventListener('click', async func
 });
 
 // EMAIL BATCH LISTENER
-document.getElementById('emailBatchBtn').addEventListener('click', async function() {
+document.getElementById('emailBatchBtn').addEventListener('click', async function () {
     if (parsedCSVData.length === 0) return alert("Error: Please upload a CSV first.");
     const emailKey = Object.keys(parsedCSVData[0]).find(k => k.toLowerCase().includes('email') || k.toLowerCase().includes('mail'));
     if (!emailKey) return alert("Error: Could not find an 'Email' column in your CSV!");
 
     const btn = document.getElementById('emailBatchBtn'); btn.disabled = true;
-    if(!confirm(`Are you sure you want to instantly email ${parsedCSVData.length} certificates?`)) { btn.disabled = false; return; }
+    if (!confirm(`Are you sure you want to instantly email ${parsedCSVData.length} certificates?`)) { btn.disabled = false; return; }
 
     const { jsPDF } = window.jspdf;
     const pdfConfig = { orientation: 'landscape', unit: 'px', format: [canvas.getWidth(), canvas.getHeight()] };
 
     // 🛡️ FIXED: Fetch AI Messages before looping!
-    const isAIToggledOn = document.getElementById('useAIToggle').checked; 
+    const isAIToggledOn = document.getElementById('useAIToggle').checked;
     let aiMessages = [];
     if (canvas.getObjects().some(obj => obj.text && obj.text.includes('{{AIMessage}}'))) {
         btn.innerHTML = "<i class='ri-loader-4-line ri-spin'></i> Connecting to AI Engine...";
@@ -561,14 +562,14 @@ document.getElementById('emailBatchBtn').addEventListener('click', async functio
         const row = parsedCSVData[i];
         btn.innerHTML = `<i class='ri-loader-4-line ri-spin'></i> Sending ${i + 1} / ${parsedCSVData.length}...`;
 
-        originalTextStates.forEach(item => { 
-            let newText = item.originalText || ""; 
-            
+        originalTextStates.forEach(item => {
+            let newText = item.originalText || "";
+
             // 🛡️ FIXED: Replace the AI Message tag!
             if (newText && newText.includes('{{AIMessage}}') && aiMessages[i]) {
                 newText = newText.replace('{{AIMessage}}', aiMessages[i]);
             }
-            
+
             const matches = newText ? newText.match(/{{(.*?)}}/g) : null;
             if (matches) matches.forEach(match => { const varName = match.replace(/{{|}}/g, ''); newText = newText.replace(match, row[smartMapping[varName] || varName] || ''); });
             item.obj.set('text', newText);
@@ -577,10 +578,11 @@ document.getElementById('emailBatchBtn').addEventListener('click', async functio
         const participantIdName = row[smartMapping['Name']] || Object.keys(row)[0] || `Participant_${i}`;
         const targetEmail = row[emailKey];
         const certId = 'CF-' + Math.random().toString(36).substr(2, 9).toUpperCase();
-        
-        const qrImg = await addQRCode(`http://localhost:5000/verify/${certId}?name=${encodeURIComponent(participantIdName)}`);
+
+        const currentDomain = window.location.origin;
+        const qrImg = await addQRCode(`${currentDomain}/verify/${certId}?name=${encodeURIComponent(participantIdName)}`);
         canvas.renderAll();
-        
+
         const tempPdf = new jsPDF(pdfConfig); renderCanvasToPDFNative(tempPdf);
         const pdfBase64 = tempPdf.output('datauristring');
         if (qrImg) canvas.remove(qrImg);

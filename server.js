@@ -134,7 +134,7 @@ app.post('/api/send-email', async (req, res) => {
             from: `"CertiFlow Open Innovation" <${process.env.EMAIL_USER}>`, // 🔒 Secured From Address
             to: email,
             subject: `🏅 Your Official Hackathon Certificate - ${certId}`,
-            text: `Hello ${name},\n\nCongratulations on your exceptional performance!\n\nAttached is your official, cryptographically verified certificate. Verify authenticity here:\nhttp://localhost:${PORT}/verify/${certId}\n\nBest regards,\nThe Open Innovation Team`,
+            text: `Hello ${name},\n\nCongratulations on your exceptional performance!\n\nAttached is your official, cryptographically verified certificate. Verify authenticity here:\n${process.env.PUBLIC_URL || `http://localhost:${PORT}`}/verify/${certId}\n\nBest regards,\nThe Open Innovation Team`,
             attachments: [{ filename: `${name}_Certificate.pdf`, content: pdfBase64.split("base64,")[1], encoding: 'base64' }]
         });
         res.status(200).json({ success: true });
