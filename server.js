@@ -148,7 +148,62 @@ app.post('/api/send-email', async (req, res) => {
 // CATCH-ALL & QR VERIFICATION
 // ==========================================
 app.get('/verify/:id', (req, res) => {
-    res.send(`<h1 style="text-align:center; margin-top:50px; font-family:sans-serif; color:green;">✅ Verified Authentic<br><small>${req.params.id}</small></h1>`);
+    const certId = req.params.id;
+    // We grab the name from the QR code URL query!
+    const name = req.query.name || 'this participant';
+
+    const html = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Credential Verified | CertiFlow</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <style>
+            body { font-family: 'Inter', sans-serif; background: #f8fafc; color: #0f172a; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+            .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1); text-align: center; max-width: 400px; width: 90%; border-top: 5px solid #10b981; }
+            .icon { width: 60px; height: 60px; background: #d1fae5; color: #10b981; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 30px; font-weight: bold; margin: 0 auto 20px; }
+            h1 { font-size: 24px; margin: 0 0 10px 0; color: #0f172a; }
+            p { color: #475569; font-size: 14px; line-height: 1.6; margin-bottom: 25px; }
+            .details { background: #f1f5f9; padding: 15px; border-radius: 8px; text-align: left; font-size: 13px; margin-bottom: 25px; border: 1px solid #e2e8f0; }
+            .details-row { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 10px; }
+            .details-row:last-child { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
+            .label { color: #64748b; font-weight: 500; }
+            .value { font-weight: 600; color: #0f172a; text-align: right; }
+            .btn { display: inline-block; background: #3b82f6; color: white; text-decoration: none; padding: 12px 20px; border-radius: 6px; font-weight: 600; font-size: 14px; transition: background 0.2s; width: 100%; box-sizing: border-box; }
+            .btn:hover { background: #2563eb; }
+            .footer { margin-top: 20px; font-size: 12px; color: #94a3b8; }
+        </style>
+    </head>
+    <body>
+        <div class="card">
+            <div class="icon">✓</div>
+            <h1>Credential Verified</h1>
+            <p>This document is an authentic, secure credential issued by <strong>CertiFlow Open Innovation</strong>.</p>
+            
+            <div class="details">
+                <div class="details-row">
+                    <span class="label">Issued To:</span>
+                    <span class="value">${name}</span>
+                </div>
+                <div class="details-row">
+                    <span class="label">Credential ID:</span>
+                    <span class="value" style="font-family: monospace; color: #3b82f6;">${certId}</span>
+                </div>
+                <div class="details-row">
+                    <span class="label">System Status:</span>
+                    <span class="value" style="color: #10b981;">Active & Valid</span>
+                </div>
+            </div>
+
+            <a href="/" class="btn">Create Your Own Certificates</a>
+            <div class="footer">🔒 Secured by CertiFlow</div>
+        </div>
+    </body>
+    </html>
+    `;
+    res.send(html);
 });
 
 app.get(/(.*)/, (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
