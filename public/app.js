@@ -590,7 +590,13 @@ document.getElementById('emailBatchBtn').addEventListener('click', async functio
         if (targetEmail && targetEmail.includes('@')) {
             try {
                 const response = await fetch('/api/send-email', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: targetEmail, name: participantIdName, pdfBase64: pdfBase64, certId: certId }) });
-                if (response.ok) successCount++;
+                const result = await response.json();
+                if (response.ok && result.success) {
+                    successCount++;
+                } else {
+                    console.error("Server rejected email:", result);
+                    alert(`Failed to send to ${targetEmail}. Check server logs!`);
+                }
             } catch (e) { console.error("Failed to email", targetEmail); }
         }
     }
