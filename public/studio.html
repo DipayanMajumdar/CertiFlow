@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CertiFlow Design Studio</title>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.0/color-thief.umd.js"></script>
+</head>
+<body>
+
+    <div class="header">
+        <h1><i class="ri-medal-fill" style="color: #60a5fa;"></i> CertiFlow Studio</h1>
+        <div class="header-actions">
+            <button id="downloadProofBtn" class="btn success-btn"><i class="ri-image-line"></i> Download Proof</button>
+            <button id="viewTemplatesBtn" class="btn"><i class="ri-folder-open-line"></i> My Templates</button>
+            <button id="exportBtn" class="btn primary-btn"><i class="ri-save-3-line"></i> Save Template</button>
+        </div>
+    </div>
+
+    <div class="workspace">
+        <div class="sidebar left-sidebar">
+            <div class="sidebar-content">
+                <div>
+                    <h3 class="section-title"><i class="ri-layout-line"></i> Page Layout</h3>
+                    <select id="pageLayout">
+                        <option value="800x600">Standard Web (800 x 600)</option>
+                        <option value="1056x816">Letter Landscape (1056 x 816)</option>
+                        <option value="1123x794">A4 Landscape (1123 x 794)</option>
+                        <option value="794x1123">A4 Portrait (794 x 1123)</option>
+                    </select>
+                </div>
+                <hr>
+                <div>
+                    <h3 class="section-title"><i class="ri-text"></i> Typography</h3>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <button id="addTextBtn" class="btn"><i class="ri-add-line"></i> Add Text Field</button>
+                        <button id="addAiMessageBtn" class="btn ai-btn"><i class="ri-magic-line"></i> Add AI {{Message}}</button>
+                    </div>
+                </div>
+                <hr>
+                <div>
+                    <h3 class="section-title"><i class="ri-database-2-line"></i> Dynamic Variables</h3>
+                    <p class="instruction">Upload a CSV in the export panel to unlock custom data variables.</p>
+                    <div id="dynamicFieldsContainer" style="display: flex; flex-wrap: wrap; gap: 6px;"></div>
+                </div>
+                <hr>
+                <div>
+                    <h3 class="section-title"><i class="ri-image-add-line"></i> Media & Shapes</h3>
+                    <input type="file" id="bgUpload" accept="image/*" style="display: none;">
+                    <input type="file" id="imageUpload" accept="image/*" style="display: none;">
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <button id="bgUploadBtn" class="btn" onclick="document.getElementById('bgUpload').click()"><i class="ri-image-line"></i> Upload Background</button>
+                        <button id="imageUploadBtn" class="btn" onclick="document.getElementById('imageUpload').click()"><i class="ri-star-smile-line"></i> Add Logo / Badge</button>
+                        <button id="drawBtn" class="btn" style="color: var(--primary); border-color: var(--primary);"><i class="ri-pen-nib-line"></i> Draw Signature</button>
+                    </div>
+                    <div class="btn-group" style="margin-top: 8px;">
+                        <button id="addRectBtn" class="btn"><i class="ri-square-line"></i></button>
+                        <button id="addCircBtn" class="btn"><i class="ri-checkbox-blank-circle-line"></i></button>
+                        <button id="addLineBtn" class="btn"><i class="ri-subtract-line"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="canvas-wrapper" id="workspaceWrapper">
+            <div style="box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);">
+                <canvas id="certificateCanvas"></canvas>
+            </div>
+            <div style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: white; padding: 6px; border-radius: 8px; box-shadow: var(--shadow-md); display: flex; align-items: center; gap: 5px; z-index: 100;">
+                <button id="zoomOutBtn" class="btn" style="padding: 4px 8px; border: none;"><i class="ri-zoom-out-line"></i></button>
+                <span id="zoomLevel" style="font-size: 13px; font-weight: 600; width: 45px; text-align: center;">100%</span>
+                <button id="zoomInBtn" class="btn" style="padding: 4px 8px; border: none;"><i class="ri-zoom-in-line"></i></button>
+                <div style="width: 1px; height: 16px; background: var(--border); margin: 0 4px;"></div>
+                <button id="zoomResetBtn" class="btn" style="padding: 4px 8px; border: none; font-size: 12px;">Reset</button>
+            </div>
+        </div>
+
+        <div class="sidebar right-sidebar">
+            <div class="sidebar-content">
+                <div id="propertiesPanel" style="display: none; flex-direction: column; gap: 15px;">
+                    <div class="panel-section">
+                        <h3 class="section-title"><i class="ri-tools-line"></i> Design Tools</h3>
+                        <div class="btn-group" style="margin-bottom: 12px;">
+                            <button id="centerHBtn" class="btn" title="Center Horizontally"><i class="ri-align-center"></i> Center</button>
+                            <button id="centerVBtn" class="btn" title="Center Vertically"><i class="ri-align-vertically"></i> Middle</button>
+                        </div>
+                        <div class="input-group">
+                            <label style="display: flex; justify-content: space-between;">Opacity <span id="opacityVal" style="color: var(--primary);">100%</span></label>
+                            <input type="range" id="opacitySlider" min="0" max="1" step="0.05" value="1">
+                        </div>
+                        <div class="checkbox-card" style="margin-bottom: 0;">
+                            <label><input type="checkbox" id="shadowToggle"> Apply Drop Shadow</label>
+                        </div>
+                    </div>
+                    <div id="textControls" class="panel-section" style="display: none;">
+                        <h3 class="section-title"><i class="ri-font-color"></i> Font Styles</h3>
+                        <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+                            <div style="flex: 1;"><label>Color</label><input type="color" id="textColor" value="#333333"></div>
+                            <div style="flex: 1;"><label>Highlight</label><input type="color" id="textBgColor" value="#ffffff"></div>
+                        </div>
+                        <div class="input-group">
+                            <label>Font Family</label>
+                            <select id="fontFamily">
+                                <option value="Helvetica">Helvetica</option>
+                                <option value="Georgia">Georgia</option>
+                                <option value="Times New Roman">Times New Roman</option>
+                                <option value="Courier">Courier</option>
+                                <option value="Arial">Arial</option>
+                            </select>
+                        </div>
+                        <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+                            <div style="flex: 1;"><label>Size</label><input type="number" id="fontSize" value="24"></div>
+                            <div style="flex: 1;"><label>Tracking</label><input type="number" id="charSpacing" value="0" step="10"></div>
+                            <div style="flex: 1;"><label>Line Ht</label><input type="number" id="lineHeight" value="1.1" step="0.1"></div>
+                        </div>
+                        <div class="btn-group" style="margin-bottom: 8px;">
+                            <button id="boldBtn" class="btn"><i class="ri-bold"></i></button>
+                            <button id="italicBtn" class="btn"><i class="ri-italic"></i></button>
+                            <button id="underlineBtn" class="btn"><i class="ri-underline"></i></button>
+                            <button id="strikeBtn" class="btn"><i class="ri-strikethrough"></i></button>
+                        </div>
+                        <div class="btn-group">
+                            <button id="alignLeftBtn" class="btn"><i class="ri-align-left"></i></button>
+                            <button id="alignCenterBtn" class="btn"><i class="ri-align-center"></i></button>
+                            <button id="alignRightBtn" class="btn"><i class="ri-align-right"></i></button>
+                        </div>
+                    </div>
+                    <div class="panel-section">
+                        <h3 class="section-title"><i class="ri-stack-line"></i> Arrangement</h3>
+                        <div class="btn-group" style="margin-bottom: 8px;">
+                            <button id="bringFrontBtn" class="btn"><i class="ri-bring-forward"></i> Front</button>
+                            <button id="sendBackBtn" class="btn"><i class="ri-send-backward"></i> Back</button>
+                        </div>
+                        <div class="btn-group" style="margin-bottom: 8px;">
+                            <button id="groupBtn" class="btn"><i class="ri-group-line"></i> Group</button>
+                            <button id="ungroupBtn" class="btn"><i class="ri-ungroup-line"></i> Ungroup</button>
+                        </div>
+                        <div class="btn-group" style="margin-bottom: 15px;">
+                            <button id="lockBtn" class="btn"><i class="ri-lock-line"></i> Lock</button>
+                            <button id="unlockBtn" class="btn"><i class="ri-lock-unlock-line"></i> Unlock</button>
+                        </div>
+                        <button id="deleteBtn" class="btn danger-btn"><i class="ri-delete-bin-line"></i> Delete Selected</button>
+                    </div>
+                </div>
+
+                <div id="bulkPanel" class="panel-section" style="border-color: #bfdbfe; background: #eff6ff;">
+                    <h3 class="section-title" style="color: var(--primary);"><i class="ri-rocket-line"></i> Bulk Export</h3>
+                    <p class="instruction">Upload a CSV dataset to generate hundreds of certificates.</p>
+                    <input type="file" id="csvUpload" accept=".csv" style="display: none;">
+                    <button id="csvUploadBtn" class="btn primary-btn" style="margin-bottom: 10px;" onclick="document.getElementById('csvUpload').click()"><i class="ri-file-upload-line"></i> 1. Upload CSV Data</button>
+                    <div id="csvStatus" style="font-size: 12px; color: var(--success); font-weight: 600; margin-bottom: 10px;"></div>
+                    
+                    <div class="checkbox-card" style="background: white; border-color: #cbd5e1;">
+                        <label><input type="checkbox" id="useAIToggle"> <i class="ri-magic-line" style="color: #8b5cf6; margin-right: 5px;"></i> Enable Gemini AI</label>
+                        <p style="font-size: 11px; color: var(--text-muted); margin: 4px 0 0 24px;">(Leave unchecked for local engine)</p>
+                    </div>
+                    <div class="input-group">
+                        <label>Output Format</label>
+                        <select id="outputFormat">
+                            <option value="zip_pdf">📦 ZIP Archive (PDFs)</option>
+                            <option value="zip_png">🖼️ ZIP Archive (PNGs)</option>
+                            <option value="single_pdf">📄 Single Combined PDF</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <button id="generateBatchBtn" class="btn success-btn" style="display: none;"><i class="ri-download-cloud-2-line"></i> 2. Download Batch</button>
+                        <button id="emailBatchBtn" class="btn" style="background: #8b5cf6; color: white; border: none; display: none;"><i class="ri-mail-send-line"></i> Auto-Email All</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="templateModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(2px);">
+        <div style="background: white; padding: 24px; border-radius: 12px; width: 450px; max-height: 80vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);" class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 15px; margin-bottom: 15px;">
+                <h2 style="margin: 0; font-size: 18px; color: var(--text-main);"><i class="ri-folder-open-fill" style="color: var(--primary);"></i> Saved Templates</h2>
+                <button id="closeModalBtn" class="btn" style="width: auto; padding: 6px 10px;"><i class="ri-close-line"></i></button>
+            </div>
+            <div id="templateList" style="display: flex; flex-direction: column; gap: 10px;"></div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container"></div>
+    <script src="app.js"></script>
+</body>
+</html>
