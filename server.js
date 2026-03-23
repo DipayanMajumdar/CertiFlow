@@ -117,19 +117,26 @@ app.post('/api/generate-text', async (req, res) => {
 // ==========================================
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 465,
-    secure: true, // 🛡️ Forces strict SSL for Cloud Providers like Render
+    port: 587, // 🛡️ Changed to 587 (TLS) - The preferred port for Cloud Hosting
+    secure: false, 
+    requireTLS: true,
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS 
     },
-    tls: { 
-        rejectUnauthorized: false 
-    },
-    // Don't hang forever! Timeout after 10 seconds if Google blocks it
-    connectionTimeout: 10000, 
-    greetingTimeout: 10000,
-    socketTimeout: 10000
+    tls: {
+        ciphers: 'SSLv3',
+        rejectUnauthorized: false
+    }
+});
+
+// 🛡️ NEW: Auto-Verify on Startup
+transporter.verify(function(error, success) {
+    if (error) {
+        console.error("🔴 Nodemailer Connection Error:", error.message);
+    } else {
+        console.log("🟢 Nodemailer is ready to send messages!");
+    }
 });
 
 app.post('/api/send-email', async (req, res) => {
@@ -139,16 +146,17 @@ app.post('/api/send-email', async (req, res) => {
     try {
         console.log(`📧 Sending certificate to ${email}...`);
         await transporter.sendMail({
-            from: `"CertiFlow Open Innovation" <${process.env.EMAIL_USER}>`, // 🔒 Secured From Address
+            from: `"CertiFlow Open Innovation" <${process.env.EMAIL_USER}>`, 
             to: email,
-            subject: `🏅 Your Official Hackathon Certificate - ${certId}`,
+            subject: `🏅 Your Official Certificate - ${certId}`,
             text: `Hello ${name},\n\nCongratulations on your exceptional performance!\n\nAttached is your official, cryptographically verified certificate. Verify authenticity here:\n${process.env.PUBLIC_URL || `http://localhost:${PORT}`}/verify/${certId}\n\nBest regards,\nThe Open Innovation Team`,
             attachments: [{ filename: `${name}_Certificate.pdf`, content: pdfBase64.split("base64,")[1], encoding: 'base64' }]
         });
         res.status(200).json({ success: true });
     } catch (error) {
         console.error("❌ Email failed:", error);
-        res.status(500).json({ success: false });
+        // 🛡️ NEW: Send the exact error string back to the frontend!
+        res.status(500).json({ success: false, errorDetails: error.message });
     }
 });
 

@@ -591,13 +591,17 @@ document.getElementById('emailBatchBtn').addEventListener('click', async functio
             try {
                 const response = await fetch('/api/send-email', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: targetEmail, name: participantIdName, pdfBase64: pdfBase64, certId: certId }) });
                 const result = await response.json();
+                
                 if (response.ok && result.success) {
                     successCount++;
                 } else {
-                    console.error("Server rejected email:", result);
-                    alert(`Failed to send to ${targetEmail}. Check server logs!`);
+                    console.error("Server rejected email:", result.errorDetails);
+                    alert(`Error sending to ${targetEmail}: ${result.errorDetails}`);
                 }
-            } catch (e) { console.error("Failed to email", targetEmail); }
+            } catch (e) { 
+                console.error("Failed to fetch email API", e); 
+                alert(`Fatal Error connecting to email server.`);
+            }
         }
     }
 
